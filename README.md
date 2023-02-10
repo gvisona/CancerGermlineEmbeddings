@@ -35,7 +35,7 @@ The training objective is the "denoising" of mutated sequences to reconstruct th
 The final model uses a latent dimension for the mutation embeddings of 768, and was trained for 500 epochs of 50 batches each. Each batch includes 128 samples from the ClinVar dataset.
 
 
-## COGVIC Embeddings
+## Catalogue Of Germline Variants In Cancer (COGVIC) Embeddings
 
 The model trained on the ClinVar dataset is used to embed SNVs and stopgain point mutations from the COGVIC database. The results, available in the file "COGVIC_germline_variants_embeddings.csv", are also displayed in the following UMAP plot:
 
