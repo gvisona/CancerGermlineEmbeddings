@@ -64,7 +64,8 @@ class CustomDenoisingAutoEncoderLoss(nn.Module):
             model: SentenceTransformer,
             decoder_config,
             decoder_name_or_path,
-            tie_encoder_decoder: bool = True
+            tie_encoder_decoder: bool = True,
+            device=None
     ):
         """
         :param model: SentenceTransformer model
@@ -74,6 +75,7 @@ class CustomDenoisingAutoEncoderLoss(nn.Module):
         super(CustomDenoisingAutoEncoderLoss, self).__init__()
         self.encoder = model  # This will be the final model used during the inference time.
         self.tokenizer_encoder = model.tokenizer
+        self._device = device
 
         encoder_name_or_path = model[0].auto_model.config._name_or_path
         if decoder_config is None:
@@ -135,6 +137,11 @@ class CustomDenoisingAutoEncoderLoss(nn.Module):
 
     def forward(self, sentence_features: Iterable[Dict[str, Tensor]], labels: Tensor):
         source_features, target_features = tuple(sentence_features)
+        # for k in source_features:
+        #     source_features[k].to(self._device)
+        # for k in target_features:
+        #     target_features[k].to(self._device)
+        # print(target_features)
         if self.need_retokenization:
             # since the sentence_features here are all tokenized by encoder's tokenizer,
             # retokenization by the decoder's one is needed if different tokenizers used
@@ -169,7 +176,7 @@ class CustomDenoisingAutoEncoderLoss(nn.Module):
 class LossEvaluator(SentenceEvaluator):
 
     def __init__(self, loader, loss_model: nn.Module = None, name: str = '', log_dir: str = None,
-                 show_progress_bar: bool = False, write_csv: bool = True):
+                 show_progress_bar: bool = False, write_csv: bool = True, device=None):
 
         """
         Evaluate a model based on the loss function.
@@ -187,6 +194,7 @@ class LossEvaluator(SentenceEvaluator):
         self.write_csv = write_csv
         self.logs_writer = SummaryWriter(log_dir=log_dir)
         self.name = name
+        self._device = device
         self.loss_model = loss_model
         if show_progress_bar is None:
             show_progress_bar = (
@@ -195,6 +203,8 @@ class LossEvaluator(SentenceEvaluator):
 
         self.csv_file = "loss_evaluation" + ("_" + name if name else '') + "_results.csv"
         self.csv_headers = ["epoch", "steps", "loss"]
+
+        print("Loss evaluator device: ", self._device)
 
     def __call__(self, model, output_path: str = None, epoch: int = -1, steps: int = -1) -> float:
 
@@ -208,6 +218,16 @@ class LossEvaluator(SentenceEvaluator):
         with torch.no_grad():
             for _ in trange(num_batches, desc="Iteration", smoothing=0.05, disable=not self.show_progress_bar):
                 sentence_features, labels = next(data_iterator)
+                # print(sentence_features)
+                # print(labels)
+                for el in sentence_features:
+                    # print("---")
+                    # print(el)
+                    for k in el:
+                        el[k] = el[k].to(self._device)
+                labels = labels.to(self._device)
+                
+                # print(sentence_features)
                 loss_value += self.loss_model(sentence_features, labels).item()
 
         final_loss = loss_value / num_batches

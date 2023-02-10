@@ -5,3 +5,5 @@ __pycache__/
 data/
 logs/
 processed_data/
+job.sub
+job.sh
