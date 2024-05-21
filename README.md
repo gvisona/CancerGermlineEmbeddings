@@ -48,6 +48,9 @@ The model trained on the ClinVar dataset is used to embed SNVs and stopgain poin
 The code to train from scratch a TSDAE-like model for DNA sequences is available in the "train_sentence_transformer.py" script.  
 The trained model and the pre-processed data are available on reasonable request. 
 
+## Funding
+
+This project has received funding from the European Union's Framework Programme for Research and Innovation Horizon 2020 (2014-2020) under the Marie Skłodowska-Curie Grant Agreement No. 813533-MSCA-ITN-2018 
 
 ## References
 
